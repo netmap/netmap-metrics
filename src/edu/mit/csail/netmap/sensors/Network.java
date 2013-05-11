@@ -8,6 +8,7 @@ import java.util.Map;
 
 import net.measurementlab.ndt.MLabNS;
 import net.measurementlab.ndt.NdtTests;
+import net.measurementlab.ndt.UiServices;
 
 import org.json.JSONObject;
 
@@ -141,65 +142,30 @@ public final class Network {
    *     the WiFisensor data
    */
   public static void getJson(StringBuffer buffer) {
-   
+    
   }
   
+  /** Collects the performance results reported by the NDT library. */
   private static class NdtListener implements UiServices {
-    private final Map<Integer, StringBuilder> statusBuffers = new HashMap<Integer, StringBuilder>();
-
-    // sub-string that identifies the message marking start of upload
-    // testing
-    private static final String S2C_MSG_FRAGMENT = "server-to-client";
-
-    // sub-string that identifies the message marking start of download
-    // testing
-    private static final String C2S_MSG_FRAGMENT = "client-to-server";
-
+    /** If this becomes true, the NDT performance test will abort early. */
     private boolean wantToStop = false;
 
-    int status = STATUS_PREPARING;
-
-    private Map<String, Object> variables = new HashMap<String, Object>();
-
-    NdtListener() {
-      // not needed now but may be useful in the future
-      // statusBuffers.put(UiServices.MAIN_VIEW, new StringBuilder());
-      // statusBuffers.put(UiServices.STAT_VIEW, new StringBuilder());
-      statusBuffers.put(UiServices.DIAG_VIEW, new StringBuilder());
+    /** Accmulates the performance results reported by the NDT library. */
+    public Map<String, String> results;
+    
+    public NdtListener() {
+      results = new HashMap<String, String>();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void appendString(String message, int viewId) {
       Log.d(LOG_TAG, String.format("Appended: (%1$d) %2$s.", viewId,
           message.trim()));
 
-      if (statusBuffers.containsKey(viewId)) {
-        statusBuffers.get(viewId).append(message);
-        if (!message.endsWith("\n")) {
-          statusBuffers.get(viewId).append('\n');
-        }
+      if (viewId == UiServices.DIAG_VIEW) {
+        String[] keyValue = message.split(":", 2);
+        results.put(keyValue[0], keyValue[1]);
       }
-
-      if (message.contains(C2S_MSG_FRAGMENT)
-          && UiServices.MAIN_VIEW == viewId) {
-        Log.i(LOG_TAG, "Starting upload test.");
-        status = STATUS_UPLOADING;
-        Log.i(LOG_TAG, "Broadcast status change.");
-      }
-
-      if (message.contains(S2C_MSG_FRAGMENT)
-          && UiServices.MAIN_VIEW == viewId) {
-        Log.i(LOG_TAG, "Starting download test.");
-        status = STATUS_DOWNLOADING;
-        Log.i(LOG_TAG, "Broadcast status change.");
-      }
-    }
-
-    @Override
-    public void incrementProgress() {
     }
 
     @Override
@@ -214,16 +180,17 @@ public final class Network {
     @Override
     public void onEndTest() {
       Log.d(LOG_TAG, "Test ended.");
-      status = STATUS_COMPLETE;
       wantToStop = false;
-      Log.i(LOG_TAG, "Broadcast status change.");
     }
 
     @Override
     public void onFailure(String errorMessage) {
       Log.d(LOG_TAG, String.format("Failed: %1$s.", errorMessage));
-      status = STATUS_ERROR;
       wantToStop = false;
+    }
+
+    @Override
+    public void incrementProgress() {
     }
 
     @Override
@@ -236,21 +203,14 @@ public final class Network {
 
     @Override
     public void setVariable(String name, int value) {
-      Log.d(VARS_TAG, String.format(
-          "Setting variable, %1$s, to value, %2$d.", name, value));
     }
 
     @Override
     public void setVariable(String name, double value) {
-      Log.d(VARS_TAG, String.format(
-          "Setting variable, %1$s, to value, %2$f.", name, value));
     }
 
     @Override
     public void setVariable(String name, Object value) {
-      Log.d(VARS_TAG, String.format(
-          "Setting variable, %1$s, to value, %2$s.", name,
-          (null == value) ? "null" : value.toString()));
     }
 
     @Override
@@ -260,8 +220,6 @@ public final class Network {
 
     @Override
     public void updateStatusPanel(String status) {
-      Log.d(LOG_TAG, String
-          .format("Updating status panel: %1$s.", status));
     }
 
     @Override

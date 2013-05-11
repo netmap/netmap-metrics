@@ -4,6 +4,7 @@ import java.util.HashSet;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Handler;
 
 
 /**
@@ -39,6 +40,16 @@ public final class Sensors {
   }
   private static boolean initialized = false;
   
+  public static void readSensorsAsync(final String measurements,
+      final StringBuffer jsonData, final Handler.Callback callback) {
+    new Thread(new Runnable() {
+      public void run() {
+        Sensors.readSensorsSync(measurements, jsonData);
+        callback.handleMessage(null);
+      }
+    });
+  }
+  
   /**
    * Collect the sensor reading data that will be stored in the database. 
    * 
@@ -47,7 +58,8 @@ public final class Sensors {
    * @param jsonData {@link StringBuffer} that receives the reading data,
    *     formatted as a JSON string
    */
-  public static void readSensors(String measurements, StringBuffer jsonData) {
+  public static void readSensorsSync(String measurements,
+                                     StringBuffer jsonData) {
     HashSet<String> keywords = new HashSet<String>();
     for (String measurement : measurements.split(",")) {
       keywords.add(measurement);

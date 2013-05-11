@@ -66,7 +66,6 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.mit.csail.netmap.sensors.UiServices;
 
 public class NdtTests implements Runnable {
   public static final String VERSION = "3.6.4";

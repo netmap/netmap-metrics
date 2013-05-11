@@ -1,4 +1,4 @@
-package edu.mit.csail.netmap.sensors;
+package net.measurementlab.ndt;
 
 /**
  * Provides platform-specific UI services. Defines several functions for
