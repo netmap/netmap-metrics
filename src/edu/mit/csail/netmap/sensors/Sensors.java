@@ -33,8 +33,9 @@ public final class Sensors {
     Location.initialize(context);
     // Sensors get initialized here.
     Gps.initialize(context);
-    WiFi.initialize(context);
     GSM.initialize(context);
+    Network.initialize(context);
+    WiFi.initialize(context);
   }
   private static boolean initialized = false;
   

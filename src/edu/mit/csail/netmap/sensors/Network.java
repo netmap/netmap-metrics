@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 
+import net.measurementlab.ndt.MLabNS;
 import net.measurementlab.ndt.NdtTests;
 
 import org.json.JSONObject;
@@ -25,14 +26,15 @@ import android.text.format.Formatter;
 import android.util.Log;
 
 public final class Network {
-
-  
   // log tag so logcat can be filtered to just the variable
   // written out by the core NDT Java code, useful for understanding
   // what is available for display in the test results
   private static final String VARS_TAG = "variables";
   
   static final String LOG_TAG = "NDT";
+  
+  /** Application context. */
+  private static Context context_;
 
   // user visible test phases, more coarse than actual tests
   /**
@@ -96,23 +98,16 @@ public final class Network {
 
   private Intent intent;
 
-  private String networkType;
-
-  private static CaptiveUiServices uiServices;
-
-  private BroadcastReceiver stopReceiver;
-  
-  /** True when the WiFi is enabled by the user. */
-  private static boolean enabled = false;
-  
-  /** True when the WiFi is powered up and reporting information. - not being used now*/
-  private static boolean started = false;
-  
-  /** True when listening for WiFi updates. */
-  private static boolean listening = false;
+  /** Collects network performance information from the NDT library. */
+  private static NdtListener ndtListener;
+    
+  /** True when collecting network performance measurements. */
+  private static boolean measuring = false;
   
   /** Called by {@link Sensors#initialize(android.content.Context)}. */
   public static void initialize(Context context) {
+    context_ = context;
+    ndtListener = new NdtListener();
   }
   
   /**
@@ -120,49 +115,23 @@ public final class Network {
    * 
    * This should be called when your application / activity becomes active.
    */
-  public static void start() {
-    if (listening) return;
-    // We only get onProviderDisabled() when we start listening.
-    enabled = isEnabled();
- // this interface is how the service is able to observe the
-    // tests as run by the core Java client code
-    uiServices = new CaptiveUiServices();
-    String serverHost = intent.getStringExtra(EXTRA_SERVER_HOST);
-    if (null == serverHost) {
-      serverHost = SelectServerActivity.lookupHostname(getBaseContext(), SelectServerActivity.DEFAULT_SERVER);
-    }
-
+  public static void measure() {
+    if (measuring) return;
+    measuring = true;
+    
+    String serverHost = MLabNS.Lookup(context_, "ndt", "ipv4", null);
     
     try {
-      new Thread(new NdtTests(serverHost, uiServices, networkType))
-          .start();
+      // TODO(yuhan): adapt the code in TestActivity for networkType
+      Thread measureThread = new Thread(new NdtTests(serverHost, ndtListener,
+          NdtTests.NETWORK_UNKNOWN));
+      measureThread.start();
+      measureThread.join();
     } catch (Throwable tr) {
       Log.e(LOG_TAG, "Problem running tests.", tr);
-     }
+    }
     
-    
-    listening = true;
-  }
-
-  /** 
-   * Stops listening for location updates.
-   * 
-   * This should be called when your application / activity is no longer active.
-   */
-  public static void stop() {
-    if (!listening) return;
-    wifiLock.release();
-    wifiLock = null;
-    listening = false;
-  }
-  
-  /**
-   * Checks if the user's preferences allow the use of WiFi.
-   * 
-   * @return true if the user lets us use WiFi
-   */
-  public static boolean isEnabled() {
-      return true;
+    measuring = false;
   }
   
   /**
@@ -171,13 +140,11 @@ public final class Network {
    * @param buffer a {@link StringBuffer} that receives a JSON representation of
    *     the WiFisensor data
    */
-  @SuppressWarnings("deprecation")
   public static void getJson(StringBuffer buffer) {
    
-    buffer.append("{\"enabled\":");
-    buffer.append(enabled ? "true" : "false");
   }
-  private class CaptiveUiServices implements UiServices {
+  
+  private static class NdtListener implements UiServices {
     private final Map<Integer, StringBuilder> statusBuffers = new HashMap<Integer, StringBuilder>();
 
     // sub-string that identifies the message marking start of upload
@@ -194,7 +161,7 @@ public final class Network {
 
     private Map<String, Object> variables = new HashMap<String, Object>();
 
-    CaptiveUiServices() {
+    NdtListener() {
       // not needed now but may be useful in the future
       // statusBuffers.put(UiServices.MAIN_VIEW, new StringBuilder());
       // statusBuffers.put(UiServices.STAT_VIEW, new StringBuilder());
@@ -219,7 +186,6 @@ public final class Network {
       if (message.contains(C2S_MSG_FRAGMENT)
           && UiServices.MAIN_VIEW == viewId) {
         Log.i(LOG_TAG, "Starting upload test.");
-        intent.putExtra(EXTRA_STATUS, STATUS_UPLOADING);
         status = STATUS_UPLOADING;
         Log.i(LOG_TAG, "Broadcast status change.");
       }
@@ -227,138 +193,84 @@ public final class Network {
       if (message.contains(S2C_MSG_FRAGMENT)
           && UiServices.MAIN_VIEW == viewId) {
         Log.i(LOG_TAG, "Starting download test.");
-        intent.putExtra(EXTRA_STATUS, STATUS_DOWNLOADING);
         status = STATUS_DOWNLOADING;
         Log.i(LOG_TAG, "Broadcast status change.");
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void incrementProgress() {
-      Log.d(LOG_TAG, "Incremented progress.");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void logError(String str) {
       Log.e(LOG_TAG, String.format("Error: %1$s.", str.trim()));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void onBeginTest() {
-      Log.d(LOG_TAG, "Test begun.");
-      wantToStop = false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void onEndTest() {
       Log.d(LOG_TAG, "Test ended.");
-      intent.putExtra(EXTRA_STATUS, STATUS_COMPLETE);
-      intent.putExtra(EXTRA_DIAG_STATUS, statusBuffers.get(
-          UiServices.DIAG_VIEW).toString());
-      intent.putExtra(EXTRA_VARS, (Serializable) variables);
       status = STATUS_COMPLETE;
       wantToStop = false;
       Log.i(LOG_TAG, "Broadcast status change.");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void onFailure(String errorMessage) {
       Log.d(LOG_TAG, String.format("Failed: %1$s.", errorMessage));
-      intent.putExtra(EXTRA_STATUS, STATUS_ERROR);
       status = STATUS_ERROR;
       wantToStop = false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void onLoginSent() {
-      Log.d(LOG_TAG, "Login sent.");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void onPacketQueuingDetected() {
-      Log.d(LOG_TAG, "Packet queuing detected.");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setVariable(String name, int value) {
       Log.d(VARS_TAG, String.format(
           "Setting variable, %1$s, to value, %2$d.", name, value));
-      variables.put(name, value);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setVariable(String name, double value) {
       Log.d(VARS_TAG, String.format(
           "Setting variable, %1$s, to value, %2$f.", name, value));
-      variables.put(name, value);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setVariable(String name, Object value) {
       Log.d(VARS_TAG, String.format(
           "Setting variable, %1$s, to value, %2$s.", name,
           (null == value) ? "null" : value.toString()));
-      variables.put(name, value);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void updateStatus(String status) {
       Log.d(LOG_TAG, String.format("Updating status: %1$s.", status));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void updateStatusPanel(String status) {
       Log.d(LOG_TAG, String
           .format("Updating status panel: %1$s.", status));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean wantToStop() {
       return wantToStop;
     }
 
     /**
-     * Allows the containing service instance to request the blackbox from
-     * the core NDT Java code stop testing.
+     * If this returns true, the NDT library will stop the measurement.
      */
     void requestStop() {
       wantToStop = true;

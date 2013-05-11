@@ -30,9 +30,6 @@ import org.apache.http.protocol.HTTP;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.mit.csail.netmap.sensors.R;
-import edu.mit.csail.netmap.sensors.R.string;
-
 public class MLabNS {
 
   /** Used by measurement tests if MLabNS should be used to retrieve the real server target. */

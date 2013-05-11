@@ -89,6 +89,9 @@ public final class Location {
     Gps.start();    
     WiFi.start();
     GSM.start();
+    
+    // HACK(pwnall): this should be in a separate method for collecting measurements
+    Network.measure();
   }
   
   public static void off() {
