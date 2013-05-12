@@ -52,10 +52,10 @@ public final class Recorder {
   private static Charset digestCharset_ = null;
   
   /**
-   * 
+   * Uploads a batch of sensor readings from the upload queue.
    *
-   * @return if true, the caller should call {@link #sendPack(URI)} again to
-   *     upload more data 
+   * @return if true, the caller should call {@link #uploadReadingPack()} again
+   *     to upload more data 
    */
   public static final boolean uploadReadingPack() {
     StringBuffer packData = new StringBuffer();
@@ -73,7 +73,7 @@ public final class Recorder {
   }
   
   /**
-   * Adds a sensor reading to the transmission queue.
+   * Adds a sensor reading to the upload queue.
    * 
    * @param jsonData the reading's information, encoded as a JSON string
    * @return a cryptographic hash of the reading 
