@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
+import android.telephony.TelephonyManager;
 
 
 public final class Battery {
@@ -13,7 +14,7 @@ public final class Battery {
 	  
 	  public static void initialize(Context context) {
 		  IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-		  batteryStatus = context.registerReceiver(new PowerConnectionReceiver() , ifilter);
+		  batteryStatus = context.registerReceiver(null , ifilter);
 		  
 	  }
 
@@ -24,48 +25,73 @@ public final class Battery {
 	   *     the WiFisensor data
 	   */
 	  public static void getJson(StringBuffer buffer) {
-		  buffer.append("{\"charging\":");
-		  buffer.append(isCharging());
-		  buffer.append(",\"charge\":");
-		  buffer.append(getBetteryPct());
+		  buffer.append("{\"status\":\"");
+		  switch (batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1)){
+		  	case BatteryManager.BATTERY_STATUS_CHARGING:  	
+		  		buffer.append("charging");
+		      break;
+		  	case BatteryManager.BATTERY_STATUS_DISCHARGING:  	
+		  		buffer.append("discharging");
+			  break;
+		  	case BatteryManager.BATTERY_STATUS_FULL:  	
+		  		buffer.append("full");
+			  break;
+		  	case BatteryManager.BATTERY_STATUS_NOT_CHARGING:  	
+		  		buffer.append("not_charging");
+			  break;
+		  	case BatteryManager.BATTERY_STATUS_UNKNOWN:  	
+		  		buffer.append("unknown");
+			  break;  
+		  }
+		  
+		  buffer.append("\",\"plugged\":\"");
+		  switch (batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)){
+		  	case BatteryManager.BATTERY_PLUGGED_AC:
+		  		buffer.append("ac");
+		  		break;
+		  	case BatteryManager.BATTERY_PLUGGED_USB:
+		  		buffer.append("usb");
+		  		break;
+		  	case BatteryManager.BATTERY_PLUGGED_WIRELESS:
+		  		buffer.append("wireless");
+		  		break;
+		  }
+		 
+		  buffer.append("\",\"charge\":{\"level\":");
+		  buffer.append(batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1));
+		  buffer.append(",\"scale\":");
+		  buffer.append(batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1));
+		 
+		  buffer.append("},\"health\":\"");
+		  
+		  switch (batteryStatus.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1)){
+		 	case BatteryManager.BATTERY_HEALTH_COLD:
+		 		buffer.append("cold");
+				break;
+		 	case BatteryManager.BATTERY_HEALTH_DEAD:
+		 		buffer.append("dead");
+				break;
+		 	case BatteryManager.BATTERY_HEALTH_GOOD:
+		 		buffer.append("good");
+				break;	
+		 	case BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE:
+		 		buffer.append("over_voltage");
+				break;
+		 	case BatteryManager.BATTERY_HEALTH_OVERHEAT:
+		 		buffer.append("over_heat");
+				break;	
+		 	case BatteryManager.BATTERY_HEALTH_UNKNOWN:
+		 		buffer.append("unknown");
+				break;
+		 	case BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE:
+		 		buffer.append("unknwon_failure");
+				break;
+		 }
+		  buffer.append("\"");
+		  
+		  
 		  buffer.append("}");  
 	  }
-	  
-	  /** Returns the charging status of the device. */
-	  public static boolean isCharging(){
-		  // Are we charging / charged?
-		  int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-		  boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-		                       status == BatteryManager.BATTERY_STATUS_FULL;
-		  
-		  // How are we charging?
-		  //int chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-		  //boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
-		  //boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
-		  return isCharging;
-	   }
-	  
-	  /** Returns the battery status (%) */
-	  public static float getBetteryPct(){
-		  
-		  int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-		  int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-
-		  float batteryPct = level / (float)scale;
-		  return batteryPct;
-	  }
-	   
-	  /** Monitors the charging status of the device */
-	  public static class PowerConnectionReceiver extends BroadcastReceiver {
-		    @Override
-		    public void onReceive(Context context, Intent intent) { 
-		        int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-		        boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-		                            status == BatteryManager.BATTERY_STATUS_FULL;
-		    
-		        int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-		        boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
-		        boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
-		    }
-		}
+ 
+	
 }
