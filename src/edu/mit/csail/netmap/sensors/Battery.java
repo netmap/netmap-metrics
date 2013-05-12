@@ -42,6 +42,9 @@ public final class Battery {
 		  	case BatteryManager.BATTERY_STATUS_UNKNOWN:  	
 		  		buffer.append("unknown");
 			  break;  
+		  	default:
+		  		buffer.append("unknown");
+		  		break;
 		  }
 		  
 		  buffer.append("\",\"plugged\":\"");
@@ -54,6 +57,9 @@ public final class Battery {
 		  		break;
 		  	case BatteryManager.BATTERY_PLUGGED_WIRELESS:
 		  		buffer.append("wireless");
+		  		break;
+		  	default:
+		  		buffer.append("unknown");
 		  		break;
 		  }
 		 
@@ -85,6 +91,9 @@ public final class Battery {
 				break;
 		 	case BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE:
 		 		buffer.append("unknwon_failure");
+				break;
+			default:
+				buffer.append("unknown");
 				break;
 		 }
 		  buffer.append("\"");
