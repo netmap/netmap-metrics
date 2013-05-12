@@ -89,23 +89,42 @@ public final class Network {
    *     the WiFisensor data
    */
   public static void getJson(StringBuffer buffer) {
+	  
 	  buffer.append("{\"provider\":");
 	  NetworkInfo networkInfo = connectivityManager_.getActiveNetworkInfo();
 	  if (networkInfo == null) {
 	    buffer.append("null");
 	  } else {
 	    buffer.append("\"");
-	    // TODO(yuhan): expand this to all the types
+	     
 	    switch (networkInfo.getType()) {
-	    case ConnectivityManager.TYPE_ETHERNET:
-	      buffer.append("ethernet");
+	    case ConnectivityManager.TYPE_BLUETOOTH:
+	      buffer.append("bluetooth");
 	      break;
-      case ConnectivityManager.TYPE_MOBILE:
-        buffer.append("mobile");
-        break;
-      case ConnectivityManager.TYPE_WIFI:
-        buffer.append("wifi");
-        break;
+	    case ConnectivityManager.TYPE_ETHERNET:
+	    	buffer.append("ethernet");
+	    	break;
+	    case ConnectivityManager.TYPE_MOBILE:
+	    	buffer.append("mobile");
+    		break;
+	    case ConnectivityManager.TYPE_MOBILE_DUN:
+    		buffer.append("mobile_dun");
+    		break;
+	    case ConnectivityManager.TYPE_MOBILE_HIPRI:
+    	  	buffer.append("mobile_hipri");
+    	  	break;
+	    case ConnectivityManager.TYPE_MOBILE_MMS:
+    	  	buffer.append("mobile_nms");
+    	  	break;
+	    case ConnectivityManager.TYPE_MOBILE_SUPL:
+    	  	buffer.append("mobile_supl");
+    	  	break;
+	    case ConnectivityManager.TYPE_WIFI:
+    	  	buffer.append("wifi");
+    	  	break;
+	    case ConnectivityManager.TYPE_WIMAX:
+    	  	buffer.append("wimax");
+    	  	break;
 	    }
 	    buffer.append("\"");
 	  }

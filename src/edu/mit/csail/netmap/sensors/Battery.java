@@ -17,6 +17,21 @@ public final class Battery {
 		  
 	  }
 
+	  /**
+	   * Writes a JSON representation of the battery info to the given buffer.
+	   * 
+	   * @param buffer a {@link StringBuffer} that receives a JSON representation of
+	   *     the WiFisensor data
+	   */
+	  public static void getJson(StringBuffer buffer) {
+		  buffer.append("{\"isCharing\":\"");
+		  buffer.append(isCharging());
+		  buffer.append("\",\"batteryPct\":\"");
+		  buffer.append(getBetteryPct());
+		  buffer.append("\"");
+		  buffer.append("}");  
+	  }
+	  
 	  /** Returns the charging status of the device. */
 	  public static boolean isCharging(){
 		  // Are we charging / charged?
