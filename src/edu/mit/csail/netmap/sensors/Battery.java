@@ -24,11 +24,10 @@ public final class Battery {
 	   *     the WiFisensor data
 	   */
 	  public static void getJson(StringBuffer buffer) {
-		  buffer.append("{\"isCharing\":\"");
+		  buffer.append("{\"charging\":");
 		  buffer.append(isCharging());
-		  buffer.append("\",\"batteryPct\":\"");
+		  buffer.append(",\"charge\":");
 		  buffer.append(getBetteryPct());
-		  buffer.append("\"");
 		  buffer.append("}");  
 	  }
 	  

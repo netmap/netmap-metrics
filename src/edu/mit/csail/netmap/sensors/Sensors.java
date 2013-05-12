@@ -15,6 +15,46 @@ public final class Sensors {
   static EventClient eventClient = null;
   
   /**
+   * Asynchronously collects and stores a network performance measurement.
+   * 
+   * @param measurements comma-separated list of measurements to be performed,
+   *     e.g. "ndt,wifi-ap"
+   * @param callback receives the digest of the measurement
+   * @return the Thread doing the storage and computation
+   * 
+   * @see MeasureCallback#done(String)
+   * @see Sensors#measure(String)
+   */
+  public static Thread measureAsync(final String measurements,
+                                    final MeasureCallback callback) {
+    Thread thread = new Thread(new Runnable() {
+      public void run() {
+        final String digest = Sensors.measure(measurements); 
+        callback.done(digest);
+      }
+    });
+    thread.start();
+    return thread;
+  }
+  
+  /**
+   * Synchronously collects and stores a network performance measurement.
+   * 
+   * This method should not be called on any thread handling UI events, such as
+   * the UI thread or JavaScript execution thread.
+   * Use {@link Sensors#measureAsync(String, MeasureCallback)} in those cases.
+   * 
+   * @param measurements comma-separated list of measurements to be performed,
+   *     e.g. "ndt,wifi-ap"
+   * @return the digest of the measurement
+   */
+  public static String measure(String measurements) {
+    StringBuffer jsonData = new StringBuffer(); 
+    Sensors.readSensors(measurements, jsonData);
+    return Recorder.storeReading(jsonData.toString());    
+  }
+  
+  /**
    * Sets up all the sensors.
    * 
    * This should be called once from {@link Application#onCreate()}.
@@ -33,39 +73,17 @@ public final class Sensors {
     // Location goes before location sensors.
     Location.initialize(context);
     // Sensors get initialized here.
+    Battery.initialize(context);
     Gps.initialize(context);
     GSM.initialize(context);
     Network.initialize(context);
+    Phone.initialize(context);
     WiFi.initialize(context);
   }
   private static boolean initialized = false;
-
-  /**
-   * 
-   * @param measurements
-   * @param callback
-   * @return
-   */
-  public static Thread measureAsync(final String measurements,
-                                    final MeasureCallback callback) {
-    Thread thread = new Thread(new Runnable() {
-      public void run() {
-        final String digest = Sensors.measure(measurements); 
-        callback.done(digest);
-      }
-    });
-    thread.start();
-    return thread;
-  }
-  
-  public static String measure(String measurements) {
-    StringBuffer jsonData = new StringBuffer(); 
-    Sensors.readSensors(measurements, jsonData);
-    return Recorder.storeReading(jsonData.toString());    
-  }
   
   /**
-   * Collect the sensor reading data that will be stored in the database. 
+   * Collects the sensor reading data that will be stored in the database. 
    * 
    * @param measurements comma-separated list of measurements to be performed,
    *     e.g. "latency,speed"
@@ -82,6 +100,10 @@ public final class Sensors {
     Config.getJsonFragment(jsonData);
     jsonData.append(",\"location\":");
     Location.getJson(jsonData);
+    jsonData.append(",\"battery\":");
+    Battery.getJson(jsonData);
+    jsonData.append(",\"cellular\":");
+    Phone.getJson(jsonData);
     if (!keywords.contains("nogps")) {
       jsonData.append(",\"gps\":");
       Gps.getJson(jsonData);
@@ -94,8 +116,7 @@ public final class Sensors {
       jsonData.append(",\"gsm\":");
       GSM.getJson(jsonData);
     }
-    // TODO(pwnall): network is expensive, should have a positive keyword
-    if (!keywords.contains("nonetwork")) {
+    if (keywords.contains("ndt")) {
       // HACK(pwnall): measure and getJson should be combined
       Network.measure();      
       jsonData.append(",\"ndt\":");

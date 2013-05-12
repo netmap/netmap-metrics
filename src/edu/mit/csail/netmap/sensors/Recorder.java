@@ -52,18 +52,6 @@ public final class Recorder {
   private static Charset digestCharset_ = null;
   
   /**
-   * Adds a sensor reading to the transmission queue.
-   * 
-   * @param jsonData the reading's information, encoded as a JSON string
-   * @return a cryptographic hash of the reading 
-   */
-  public static final String storeReading(String jsonData) {
-    String digest = Recorder.digest(jsonData);
-    insertReading(jsonData);
-    return digest;
-  }
-  
-  /**
    * 
    *
    * @return if true, the caller should call {@link #sendPack(URI)} again to
@@ -84,6 +72,18 @@ public final class Recorder {
     return true;
   }
   
+  /**
+   * Adds a sensor reading to the transmission queue.
+   * 
+   * @param jsonData the reading's information, encoded as a JSON string
+   * @return a cryptographic hash of the reading 
+   */
+  public static final String storeReading(String jsonData) {
+    String digest = Recorder.digest(jsonData);
+    insertReading(jsonData);
+    return digest;
+  }  
+
   /** Called by {@link Sensors#initialize(android.content.Context)}. */
   public static final void initialize(Context context) {
     context_ = context;
