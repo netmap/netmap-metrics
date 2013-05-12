@@ -18,7 +18,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.net.DhcpInfo;
+import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -123,9 +125,8 @@ public final class Network {
     String serverHost = MLabNS.Lookup(context_, "ndt", "ipv4", null);
     
     try {
-      // TODO(yuhan): adapt the code in TestActivity for networkType
       Thread measureThread = new Thread(new NdtTests(serverHost, ndtListener,
-          NdtTests.NETWORK_UNKNOWN));
+    		  getNetworkType()));
       measureThread.start();
       measureThread.join();
     } catch (Throwable tr) {
@@ -134,7 +135,24 @@ public final class Network {
     
     measuring = false;
   }
-  
+  /**
+   * Gets the type of network the device is currently using.
+   */
+  private static String getNetworkType() {
+		ConnectivityManager connectivityManager = (ConnectivityManager) context_.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+		if (null == networkInfo) {
+			return NdtTests.NETWORK_UNKNOWN;
+		}
+		switch (networkInfo.getType()) {
+		case ConnectivityManager.TYPE_MOBILE:
+			return NdtTests.NETWORK_MOBILE;
+		case ConnectivityManager.TYPE_WIFI:
+			return NdtTests.NETWORK_WIFI;
+		default:
+			return NdtTests.NETWORK_UNKNOWN;
+		}
+	}
   /**
    * Writes a JSON representation of the WiFi data to the given buffer.
    * 
@@ -142,7 +160,141 @@ public final class Network {
    *     the WiFisensor data
    */
   public static void getJson(StringBuffer buffer) {
-    
+	  buffer.append("{\"enabled\":");
+	  buffer.append(enabled ? "true" : "false");
+	  
+	  //avgrtt
+	  buffer.append(",\"avgrtt\":");
+	  if (ndtListener.results.containsKey("avgrtt")){
+		  buffer.append(ndtListener.results.get("avgrtt"));
+	  }else{
+		  buffer.append("-1");
+	  } 
+	  //c2sspd
+	  buffer.append(",\"c2sspd\":");
+	  if (ndtListener.results.containsKey("c2sspd")){
+		  buffer.append(ndtListener.results.get("c2sspd"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  
+	  //congestion
+	  buffer.append(",\"congestion\":");
+	  if (ndtListener.results.containsKey("congestion")){
+		  buffer.append(ndtListener.results.get("congestion"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  
+	  //CurRTO
+	  buffer.append(",\"CurRTO\":");
+	  if (ndtListener.results.containsKey("CurRTO")){
+		  buffer.append(ndtListener.results.get("CurRTO"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  
+	  //CurRwinRcvd
+	  buffer.append(",\"CurRwinRcvd\":");
+	  if (ndtListener.results.containsKey("CurRwinRcvd")){
+		  buffer.append(ndtListener.results.get("CurRwinRcvd"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  
+	  //CurRwinRcvd
+	  buffer.append(",\"CurRwinRcvd\":");
+	  if (ndtListener.results.containsKey("CurRwinRcvd")){
+		  buffer.append(ndtListener.results.get("CurRwinRcvd"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  //DupAcksOut
+	  buffer.append(",\"DupAcksOut\":");
+	  if (ndtListener.results.containsKey("DupAcksOut")){
+		  buffer.append(ndtListener.results.get("DupAcksOut"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  //host
+	  buffer.append(",\"host\":");
+	  if (ndtListener.results.containsKey("host")){
+		  buffer.append(ndtListener.results.get("host"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  //jitter
+	  buffer.append(",\"jitter\":");
+	  if (ndtListener.results.containsKey("jitter")){
+		  buffer.append(ndtListener.results.get("jitter"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  //loss
+	  buffer.append(",\"loss\":");
+	  if (ndtListener.results.containsKey("loss")){
+		  buffer.append(ndtListener.results.get("loss"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  //MaxRTT
+	  buffer.append(",\"MaxRTT\":");
+	  if (ndtListener.results.containsKey("MaxRTT")){
+		  buffer.append(ndtListener.results.get("MaxRTT"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  //MaxRwinRcvd
+	  buffer.append(",\"MaxRwinRcvd\":");
+	  if (ndtListener.results.containsKey("MaxRwinRcvd")){
+		  buffer.append(ndtListener.results.get("MaxRwinRcvd"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  //natStatus
+	  buffer.append(",\"natStatus\":");
+	  if (ndtListener.results.containsKey("natStatus")){
+		  buffer.append(ndtListener.results.get("natStatus"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  //optimalRcvrBuffer
+	  buffer.append(",\"optimalRcvrBuffer\":");
+	  if (ndtListener.results.containsKey("optimalRcvrBuffer")){
+		  buffer.append(ndtListener.results.get("optimalRcvrBuffer"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  //Ping
+	  buffer.append(",\"Ping\":");
+	  if (ndtListener.results.containsKey("Ping")){
+		  buffer.append(ndtListener.results.get("Ping"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  //s2cspd
+	  buffer.append(",\"s2cspd\":");
+	  if (ndtListener.results.containsKey("s2cspd")){
+		  buffer.append(ndtListener.results.get("s2cspd"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  //SACKsRcvd
+	  buffer.append(",\"SACKsRcvd\":");
+	  if (ndtListener.results.containsKey("SACKsRcvd")){
+		  buffer.append(ndtListener.results.get("SACKsRcvd"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  //WaitSec
+	  buffer.append(",\"WaitSec\":");
+	  if (ndtListener.results.containsKey("WaitSec")){
+		  buffer.append(ndtListener.results.get("WaitSec"));
+	  }else{
+		  buffer.append("-1");
+	  }
+	  buffer.append("}");
+	  System.out.println(buffer);
   }
   
   /** Collects the performance results reported by the NDT library. */
