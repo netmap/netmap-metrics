@@ -39,15 +39,29 @@ public final class Sensors {
     WiFi.initialize(context);
   }
   private static boolean initialized = false;
-  
-  public static void readSensorsAsync(final String measurements,
-      final StringBuffer jsonData, final Handler.Callback callback) {
-    new Thread(new Runnable() {
+
+  /**
+   * 
+   * @param measurements
+   * @param callback
+   * @return
+   */
+  public static Thread measureAsync(final String measurements,
+                                    final MeasureCallback callback) {
+    Thread thread = new Thread(new Runnable() {
       public void run() {
-        Sensors.readSensorsSync(measurements, jsonData);
-        callback.handleMessage(null);
+        final String digest = Sensors.measure(measurements); 
+        callback.done(digest);
       }
     });
+    thread.start();
+    return thread;
+  }
+  
+  public static String measure(String measurements) {
+    StringBuffer jsonData = new StringBuffer(); 
+    Sensors.readSensors(measurements, jsonData);
+    return Recorder.storeReading(jsonData.toString());    
   }
   
   /**
@@ -58,8 +72,7 @@ public final class Sensors {
    * @param jsonData {@link StringBuffer} that receives the reading data,
    *     formatted as a JSON string
    */
-  public static void readSensorsSync(String measurements,
-                                     StringBuffer jsonData) {
+  private static void readSensors(String measurements, StringBuffer jsonData) {
     HashSet<String> keywords = new HashSet<String>();
     for (String measurement : measurements.split(",")) {
       keywords.add(measurement);
@@ -80,6 +93,13 @@ public final class Sensors {
     if (!keywords.contains("nogsm")) {
       jsonData.append(",\"gsm\":");
       GSM.getJson(jsonData);
+    }
+    // TODO(pwnall): network is expensive, should have a positive keyword
+    if (!keywords.contains("nonetwork")) {
+      // HACK(pwnall): measure and getJson should be combined
+      Network.measure();      
+      jsonData.append(",\"ndt\":");
+      Network.getJson(jsonData);
     }
     jsonData.append("}");
   }
