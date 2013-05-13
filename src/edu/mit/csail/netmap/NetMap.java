@@ -1,5 +1,9 @@
-package edu.mit.csail.netmap.sensors;
+package edu.mit.csail.netmap;
 
+import edu.mit.csail.netmap.sensors.Config;
+import edu.mit.csail.netmap.sensors.Location;
+import edu.mit.csail.netmap.sensors.Recorder;
+import edu.mit.csail.netmap.sensors.Sensors;
 import android.content.Context;
 
 /**
@@ -48,6 +52,35 @@ public final class NetMap {
    */
   public static final boolean upload() {
     return Recorder.uploadReadingPack();
+  }
+
+  /**
+   * Sets the listener that receives NetMap event notifications.
+   * 
+   * There can only be one listener at a time. Calling this method replaces the
+   * previously set listener.
+   * 
+   * @param listener the object that will receive event notifications
+   */
+  public static void setListener(NetMapListener listener) {
+    Sensors.setEventClient(listener);
+  }
+  
+  /**
+   * Starts or stops tracking the user's location.
+   * 
+   * This method is idempotent.
+   * 
+   * @param enabled if true, the user's location will be tracked using all the
+   *     available sensors and {@link NetMapListener#onLocation()} will be
+   *     called when the user's location changes
+   */
+  public static void trackLocation(boolean enabled) {
+    if (enabled) {
+      Location.on();
+    } else {
+      Location.off();
+    }
   }
   
   /**

@@ -1,4 +1,5 @@
-package edu.mit.csail.netmap.sensors;
+package edu.mit.csail.netmap;
+
 
 /** 
  * Wraps the callback to an asynchronous measurement upload call.

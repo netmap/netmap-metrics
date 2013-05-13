@@ -2,6 +2,8 @@ package edu.mit.csail.netmap.sensors;
 
 import java.util.HashSet;
 
+import edu.mit.csail.netmap.NetMapListener;
+
 import android.app.Application;
 import android.content.Context;
 
@@ -10,7 +12,7 @@ import android.content.Context;
  */
 public final class Sensors {
   /** The object that gets notified */
-  static EventClient eventClient = null;
+  static NetMapListener eventClient = null;
 
   /**
    * Sets up all the sensors.
@@ -92,7 +94,7 @@ public final class Sensors {
    * @param eventClient_ the object that will receive new event notifications;
    *          this will replace an old event client
    */
-  public static void setEventClient(EventClient eventClient_) {
+  public static void setEventClient(NetMapListener eventClient_) {
     eventClient = eventClient_;
   }
 }
