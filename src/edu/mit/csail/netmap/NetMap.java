@@ -1,5 +1,6 @@
 package edu.mit.csail.netmap;
 
+import edu.mit.csail.netmap.sensors.Battery;
 import edu.mit.csail.netmap.sensors.Config;
 import edu.mit.csail.netmap.sensors.Location;
 import edu.mit.csail.netmap.sensors.Recorder;
@@ -87,12 +88,41 @@ public final class NetMap {
    * The most recent known user location.
    * 
    * @return the most recent / accurate location; can be null if no location
-   *     information is available; if trackLocation is not set, the retuned
+   *     information is available; if trackLocation is not set, the returned
    *     location information might be significantly old
    */
   public static android.location.Location location() {
     return Location.last();
   }
+  
+  /**
+   * The power source used by the Android device.
+   * 
+   * This is intended to help the application decide when to upload the
+   * performance measurements to the NetMap servers by calling
+   * {@link NetMap#upload()}.
+   * 
+   * @return a {@link PowerSource} enum value indicating whether the device is
+   *     running on battery power or is using an external power source 
+   */
+  public static PowerSource powerSource() {
+    return Battery.powerSource();
+  }
+  
+  /**
+   * The type of network used by the Android device to access the Internet.
+   * 
+   * This is intended to help the application decide when to upload the
+   * performance measurements to the NetMap servers by calling
+   * {@link NetMap#upload()}. 
+   * 
+   * @return a {@link NetworkSource} enum value indicating whether the device is
+   *     using a cellular Internet connection or a WiFi access point
+   */
+  public static NetworkSource networkSource() {
+    return NetworkSource.WIFI;
+  }
+  
   
   /**
    * Configures the process of uploading data to the NetMap server.
@@ -141,7 +171,7 @@ public final class NetMap {
     });
     thread.start();
     return thread;
-  }  
+  }
 
   /**
    * Synchronously uploads a batch of measurements to the NetMap servers.
@@ -181,6 +211,44 @@ public final class NetMap {
     StringBuffer buffer = new StringBuffer();
     Location.getJson(buffer);
     return buffer.toString();
+  }
+  
+  /**
+   * The power source used by the Android device.
+   * 
+   * @return the type of power source used by the device, e.g. "battery" or
+   *     "charger", encoded as a JSON object; this is meant to be passed to a
+   *     JavaScript API
+   * 
+   * @see NetMap#powerSource()
+   */
+  public static String powerSourceJson() {
+    switch (NetMap.powerSource()) {
+    case BATTERY:
+      return "\"battery\"";
+    case CHARGER:
+      return "\"charger\"";
+    default:
+      return "\"unknown\"";
+    }
+  }
+  
+  /**
+   * The type of network used by the Android device to access the Internet.
+   * 
+   * @return the type of Internet connection used by the device, e.g. "cell" or
+   *     "wifi", encoded as a JSON object; this is meant to be passed to a
+   *     JavaScript API
+   */
+  public static String networkSourceJson() {
+    switch (NetMap.networkSource()) {
+    case CELLULAR:
+      return "\"cell\"";
+    case WIFI:
+      return "\"wifi\"";
+    default:
+      return "\"unknown\"";
+    }
   }
   
   /** This class is not intended to be instantiated. */
