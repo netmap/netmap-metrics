@@ -1,17 +1,24 @@
 package edu.mit.csail.netmap.sensors;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
+import android.util.Log;
+
 
 public final class Battery {
 
 	  private static Intent batteryStatus;
+	  private static Intent powerConnectionStatus;
 	  
 	  public static void initialize(Context context) {
 		  IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-		  batteryStatus = context.registerReceiver(null , ifilter);
+		  IntentFilter powerConnectedFilter = new IntentFilter(Intent.ACTION_POWER_CONNECTED);
+		  
+		  powerConnectionStatus = context.registerReceiver(new PowerConnectionReceiver(), powerConnectedFilter);
+		  batteryStatus = context.registerReceiver(null, ifilter);
 		  
 	  }
 
@@ -41,7 +48,6 @@ public final class Battery {
 			  break;  
 		  	default:
 		  		buffer.append("unknown");
-		  		break;
 		  }
 		  
 		  buffer.append("\",\"plugged\":\"");
@@ -98,6 +104,18 @@ public final class Battery {
 		  
 		  buffer.append("}");  
 	  }
- 
-	
+	  
+	  private static class PowerConnectionReceiver extends BroadcastReceiver {
+		    @Override
+		    public void onReceive(Context context, Intent intent) { 
+		        int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+		        boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
+		        if (isCharging){
+		        	
+		        	Log.d("Battery", "Charging...");
+		        }else{
+		        	Log.d("Battery", "Discharging...");
+		        }
+		    }
+		}
 }

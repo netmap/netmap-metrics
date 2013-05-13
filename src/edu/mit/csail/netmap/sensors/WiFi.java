@@ -43,6 +43,7 @@ public final class WiFi {
     scanResultReceiver = new ScanResultReceiver();
     context.registerReceiver(scanResultReceiver,
         new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); 
+    
   }
   
   /**
@@ -177,4 +178,5 @@ public final class WiFi {
       scanResults = wifiManager.getScanResults();
     }
   }
+ 
 }
