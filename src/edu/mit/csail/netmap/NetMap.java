@@ -84,6 +84,17 @@ public final class NetMap {
   }
   
   /**
+   * The most recent known user location.
+   * 
+   * @return the most recent / accurate location; can be null if no location
+   *     information is available; if trackLocation is not set, the retuned
+   *     location information might be significantly old
+   */
+  public static android.location.Location location() {
+    return Location.last();
+  }
+  
+  /**
    * Configures the process of uploading data to the NetMap server.
    * 
    * The configuration information is persisted across application restarts. To
@@ -158,6 +169,20 @@ public final class NetMap {
     return thread;
   }  
 
+  /**
+   * The most recent known user location.
+   * 
+   * @return the most recent / accurate location, encoded as a JSON object; this
+   *     is meant to be passed to a JavaScript API
+   *     
+   * @see NetMap#location()
+   */
+  public static String locationJson() {
+    StringBuffer buffer = new StringBuffer();
+    Location.getJson(buffer);
+    return buffer.toString();
+  }
+  
   /** This class is not intended to be instantiated. */
   private NetMap() { }
 }
