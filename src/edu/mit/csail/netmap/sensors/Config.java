@@ -25,7 +25,7 @@ public class Config {
     preferences_ = context.getSharedPreferences(
         PREFERENCES_NAME, Context.MODE_PRIVATE);
     uploadUri_ = URI.create(preferences_.getString("uploadUrl",
-        "http://netmap.csail.mit.edu/net_readings/"));
+        "http://netmap-data.pwnb.us/readings/"));
     uid_ = preferences_.getString("uploadUid", "");
   }
   
