@@ -25,9 +25,6 @@ public final class GSM {
   /** True when the GSM is enabled by the user. */
   private static boolean enabled = false;
   
-  /** True when the GSM is powered up and reporting information. - not being used now*/
-  private static boolean started = false;
-  
   /** True when listening for GSM updates. */
   private static boolean listening = false;
   

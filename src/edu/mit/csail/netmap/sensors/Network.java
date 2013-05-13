@@ -3,7 +3,6 @@ package edu.mit.csail.netmap.sensors;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.json.JSONObject;
 
@@ -16,12 +15,7 @@ import android.net.NetworkInfo;
 import android.util.Log;
 
 public final class Network {
-  // log tag so logcat can be filtered to just the variable
-  // written out by the core NDT Java code, useful for understanding
-  // what is available for display in the test results
-  private static final String VARS_TAG = "variables";
-  
-  static final String LOG_TAG = "NDT";
+  static final String LOG_TAG = "NetMap";
   
   /** Application context. */
   private static Context context_;
@@ -59,8 +53,8 @@ public final class Network {
     		  getNetworkType()));
       measureThread.start();
       measureThread.join();
-    } catch (Throwable tr) {
-      Log.e(LOG_TAG, "Problem running tests.", tr);
+    } catch (InterruptedException e) {
+      Log.e(LOG_TAG, "Interrupted while running NDT tests.");
     }
     
     measuring = false;
@@ -136,7 +130,6 @@ public final class Network {
 	    buffer.append(JSONObject.quote(entry.getValue()));
 	  }
 	  buffer.append("}");
-	  System.out.println(buffer);
   }
   
   /** Collects the performance results reported by the NDT library. */
@@ -144,7 +137,7 @@ public final class Network {
     /** If this becomes true, the NDT performance test will abort early. */
     private boolean wantToStop = false;
 
-    /** Accmulates the performance results reported by the NDT library. */
+    /** Accumulates the performance results reported by the NDT library. */
     public Map<String, String> results;
     
     public NdtListener() {
@@ -153,9 +146,6 @@ public final class Network {
 
     @Override
     public void appendString(String message, int viewId) {
-      Log.d(LOG_TAG, String.format("Appended: (%1$d) %2$s.", viewId,
-          message.trim()));
-
       if (viewId == UiServices.DIAG_VIEW) {
         String[] keyValue = message.split(":", 2);
         results.put(keyValue[0].trim(), keyValue[1].trim());
@@ -164,7 +154,7 @@ public final class Network {
 
     @Override
     public void logError(String str) {
-      Log.e(LOG_TAG, String.format("Error: %1$s.", str.trim()));
+      Log.e(LOG_TAG, String.format("NDT error: %1$s.", str.trim()));
     }
 
     @Override
@@ -179,7 +169,7 @@ public final class Network {
 
     @Override
     public void onFailure(String errorMessage) {
-      Log.d(LOG_TAG, String.format("Failed: %1$s.", errorMessage));
+      Log.d(LOG_TAG, String.format("NDT failure: %1$s.", errorMessage));
       wantToStop = false;
     }
 
@@ -209,7 +199,6 @@ public final class Network {
 
     @Override
     public void updateStatus(String status) {
-      Log.d(LOG_TAG, String.format("Updating status: %1$s.", status));
     }
 
     @Override
@@ -224,7 +213,8 @@ public final class Network {
     /**
      * If this returns true, the NDT library will stop the measurement.
      */
-    void requestStop() {
+    @SuppressWarnings("unused")
+    public void requestStop() {
       wantToStop = true;
     }
 

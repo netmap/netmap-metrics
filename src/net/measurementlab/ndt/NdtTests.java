@@ -90,7 +90,7 @@ public class NdtTests implements Runnable {
   private static final String META_CLIENT_APPLICATION = "client.application";
 
   /* we really should do some clean-up in this java code... maybe later ;) */
-  private static final byte COMM_FAILURE  = 0;
+  //private static final byte COMM_FAILURE  = 0;
   private static final byte SRV_QUEUE     = 1;
   private static final byte MSG_LOGIN     = 2;
   private static final byte TEST_PREPARE  = 3;
@@ -151,7 +151,7 @@ public class NdtTests implements Runnable {
 
   private final String host;
   private final UiServices uiServices;
-  private final String networkType;
+  //private final String networkType;
 
   /*
    * Initializes the network test thread.
@@ -163,7 +163,7 @@ public class NdtTests implements Runnable {
   public NdtTests(String host, UiServices uiServices, String networkType) {
     this.host = host;
     this.uiServices = uiServices;
-    this.networkType = networkType;
+    //this.networkType = networkType;
     diagnosis = new TextOutputAdapter(uiServices, UiServices.DIAG_VIEW);
     statistics = new TextOutputAdapter(uiServices, UiServices.STAT_VIEW);
     results = new TextOutputAdapter(uiServices, UiServices.STAT_VIEW);
@@ -280,7 +280,7 @@ public class NdtTests implements Runnable {
   public static boolean isNumericHex(String str) {  
     // Test whether the string is a valid hex string by a try/catch
       try  {  
-          int i = Integer.parseInt(str, 16);
+          Integer.parseInt(str, 16);
       }  catch(NumberFormatException nfe)  {  
         return false;  
       }  
@@ -329,7 +329,6 @@ public class NdtTests implements Runnable {
       InputStream srvin2 = in2Socket.getInputStream();
       OutputStream srvout2 = in2Socket.getOutputStream();
 
-      int largewin = 128*1024;
 
       in2Socket.setSoTimeout(6500);
       int bytes = 0;
@@ -579,7 +578,6 @@ public class NdtTests implements Runnable {
         return true;
       }
 
-      Random rng = new Random();
       byte c = '0';
       int i;
       for (i=0; i<lth; i++) {
@@ -777,7 +775,6 @@ public class NdtTests implements Runnable {
 
       /* get web100 variables from server */
       tmpstr = "";
-      int i = 0;
 
       // Try setting a 5 second timer here to break out if the read fails.
       ctlSocket.setSoTimeout(5000);
@@ -798,7 +795,6 @@ public class NdtTests implements Runnable {
             return true;
           }
           tmpstr += new String(msg.body);
-          i++;
         }
       } catch (IOException e) {}
       ctlSocket.setSoTimeout(0);
@@ -869,8 +865,6 @@ public class NdtTests implements Runnable {
   private void dottcp() throws IOException {
       Socket ctlSocket = null;
       int ctlport = CONTROL_PORT;
-        double wait2;
-        int sbuf, rbuf;
         int i, wait, swait=0;
 
         failed = false;
@@ -1214,7 +1208,7 @@ public class NdtTests implements Runnable {
     StringTokenizer tokens;
     int i=0;
     String sysvar, strval;
-    int sysval, Zero=0, bwdelay, minwin;
+    int sysval, Zero=0;
     double sysval2, j;
     String osName, osArch, osVer, javaVer, javaVendor, client;
 
@@ -1675,8 +1669,8 @@ public class NdtTests implements Runnable {
     // String winsrecv = tokens.nextToken();
     // String winssent = tokens.nextToken();
     int mss = Integer.parseInt(tokens.nextToken());
-    int winsrecv = Integer.parseInt(tokens.nextToken());
-    int winssent = Integer.parseInt(tokens.nextToken());
+    /*int winsrecv = */Integer.parseInt(tokens.nextToken());
+    /*int winssent = */Integer.parseInt(tokens.nextToken());
 
     String csip = tokens.nextToken();
     k = csip.indexOf("/");

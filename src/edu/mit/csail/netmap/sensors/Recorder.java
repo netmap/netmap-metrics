@@ -8,12 +8,10 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 
@@ -34,7 +32,7 @@ public final class Recorder {
   private static final String USER_AGENT = "NetMap/1.0 Recorder/1.0";
 
   /** Logging tag. */
-  private static final String TAG = "recorder";
+  private static final String TAG = "NetMap";
   
   /** The table that recordings are saved into. */
   private static final String TABLE_NAME = "metrics";
@@ -158,37 +156,46 @@ public final class Recorder {
       Log.e(TAG, "http.entity.StringEntity rejected pack");
       return false;
     }
-    HttpClient httpClient = AndroidHttpClient.newInstance(USER_AGENT, context_);
+    AndroidHttpClient httpClient = AndroidHttpClient.newInstance(USER_AGENT, context_);
     try {
       HttpResponse response = httpClient.execute(request);
-      int statusCode = response.getStatusLine().getStatusCode();
-      
-      // Must read the response, otherwise AndroidHttpClient leaks.
+      int statusCode = response.getStatusLine().getStatusCode();      
+      if (statusCode >= 200 && statusCode < 300) {
+        httpClient.close();
+        return true;
+      }
+
+      // An error occurred, try to output it to the debugging log.
       String jsonResponse = "{}";
       HttpEntity entity = response.getEntity();
       if (entity != null) {
-        InputStream content = entity.getContent();
-        Scanner scanner = new Scanner(content).useDelimiter("\\A");
-        if (scanner.hasNext()) {
-          jsonResponse = scanner.next();
+        long contentLength = entity.getContentLength();
+        if (contentLength >= 0) {
+          InputStream content = entity.getContent();
+          byte[] responseBytes = new byte[(int)contentLength];
+          content.read(responseBytes);
+          jsonResponse = new String(responseBytes, digestCharset_);
+        } else {
+          // No Content-Length header received.
+          // Most likely not talking to the NetMap metrics server.
         }
-        scanner.close();
         entity.consumeContent();
       }
       
-      if (statusCode >= 200 && statusCode < 300) {
+      if (statusCode == 400) {
+        Log.e(TAG, "Validation errors during pack upload: " + jsonResponse);
         return true;
       }
-      // TODO(pwnall): invalid JSON should be removed from the database,
-      //               otherwise there will be an infinite loop
       
       Log.e(TAG, "Server error during pack upload: " + jsonResponse);
       return false;
     } catch (ClientProtocolException e) {
       Log.e(TAG, "ClientProtocolException during pack upload");
+      httpClient.close();
       return false;
     } catch (IOException e) {
       Log.e(TAG, "IOException during pack upload");
+      httpClient.close();
       return false;
     }
   }

@@ -33,9 +33,6 @@ public final class WiFi {
   /** True when the WiFi is enabled by the user. */
   private static boolean enabled = false;
   
-  /** True when the WiFi is powered up and reporting information. - not being used now*/
-  private static boolean started = false;
-  
   /** True when listening for WiFi updates. */
   private static boolean listening = false;
   
