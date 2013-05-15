@@ -130,11 +130,11 @@ public final class NetMap {
    * The configuration information is persisted across application restarts. To
    * change it, call {@link NetMap#configure(String)} again.
    * 
-   * @param uid the user token that identifies the application and user that
-   *    is submitting data to the NetMap server
+   * @param userToken the user token that identifies the application and user
+   *    that is submitting data to the NetMap server
    */
-  public static final void configure(String uid) {
-    NetMap.configure(uid, "http://netmap-data.pwnb.us/readings/");
+  public static final void configure(String userToken) {
+    NetMap.configure(userToken, "http://netmap-data.pwnb.us/readings/");
   }
   
   /**
@@ -143,11 +143,11 @@ public final class NetMap {
    * The configuration information is persisted across application restarts. To
    * change it, call {@link NetMap#configure(String)} again.
    * 
-   * @param uid the user token that identifies the application and user that
+   * @param userToken the user token that identifies the application and user that
    *    is submitting data to the NetMap server
    */
-  public static final void configure(String uid, String url) {
-    Config.setReadingsUploadBackend(url, uid);
+  public static final void configure(String userToken, String url) {
+    Config.setReadingsUploadBackend(url, userToken);
   }
   
   /**
