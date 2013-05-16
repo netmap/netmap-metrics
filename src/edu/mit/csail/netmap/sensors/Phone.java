@@ -60,7 +60,6 @@ public final class Phone {
     buffer.append(telephonyManager_.getSubscriberId());
 
     buffer.append("\",\"phoneType\":\"");
-    buffer.append(telephonyManager_.getPhoneType());
     switch (telephonyManager_.getPhoneType()) {
     case TelephonyManager.PHONE_TYPE_CDMA:
       buffer.append("cdma");
