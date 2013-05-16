@@ -118,7 +118,7 @@ public final class Battery {
       buffer.append("unknown");
       break;
     case BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE:
-      buffer.append("unknwon_failure");
+      buffer.append("unknown_failure");
       break;
     default:
       buffer.append("unknown");
